@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale: 1.0">
+  <title>Honors CGPA Calculator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <h1>Honors CGPA Calculator</h1>
+  <div class="year-container">
+    <button class="button-64" onclick="setupYear(1, 6)" role="button"><span class="text">Honors First
+        Year</span></button>
+    <button class="button-64" onclick="setupYear(2, 7)" role="button"><span class="text">Honors Second
+        Year</span></button>
+    <button class="button-64" onclick="setupYear(3, 8)" role="button"><span class="text">Honors Third
+        Year</span></button>
+    <button class="button-64" onclick="setupYear(4, 10)" role="button"><span class="text">Honors Fourth
+        Year</span></button>
+  </div>
+
+  <div class="subject-container hidden" id="subject-container">
+    <h2 id="year-title"></h2>
+    <div id="subjects"></div>
+    <button class="button-64" onclick="calculateResult()" role="button"><span class="text">Get Result</span></button>
+  </div>
+
+  <div class="result-box hidden" id="result-box">
+    <h3>Your CGPA is:</h3>
+    <p id="result"></p>
+    <p id="fail-message" class="fail-message hidden">So Sad You Are Failed</p>
+  </div>
+
+  <script>
+    const gradePoints = {
+      "A+": 4.00,
+      "A": 3.75,
+      "A-": 3.50,
+      "B+": 3.25,
+      "B": 3.00,
+      "B-": 2.75,
+      "C+": 2.50,
+      "C": 2.25,
+      "F": 0.00
+    };
+
+    function setupYear(year, subjects) {
+      document.getElementById('subject-container').classList.remove('hidden');
+      document.getElementById('result-box').classList.add('hidden');
+      const yearTitle = `Honors ${["First", "Second", "Third", "Fourth"][year - 1]} Year (${subjects} Subjects)`;
+      document.getElementById('year-title').innerText = yearTitle;
+
+      const subjectsDiv = document.getElementById('subjects');
+      subjectsDiv.innerHTML = ""; // Clear previous subjects
+
+      for (let i = 1; i <= subjects; i++) {
+        const subjectDiv = document.createElement('div');
+        subjectDiv.innerHTML = `
+                    <label>
+                        <input type="checkbox" id="subject-${i}" />
+                        Subject ${i}:
+                        <select id="grade-${i}">
+                            <option value="">Select Grade</option>
+                            ${Object.keys(gradePoints).map(grade => `<option value="${gradePoints[grade]}">${grade}</option>`).join('')}
+                        </select>
+                    </label>
+                `;
+        subjectsDiv.appendChild(subjectDiv);
+      }
+    }
+
+    function calculateResult() {
+      const checkboxes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'));
+      if (checkboxes.length === 0) {
+        alert('Please select at least one subject.');
+        return;
+      }
+
+      const totalPoints = checkboxes.reduce((total, checkbox) => {
+        const id = checkbox.id.split('-')[1];
+        const gradeValue = document.getElementById(`grade-${id}`).value;
+        if (!gradeValue) {
+          alert(`Please select a grade for Subject ${id}.`);
+          throw new Error('Missing grade');
+        }
+        return total + parseFloat(gradeValue);
+      }, 0);
+
+      const average = (totalPoints / checkboxes.length).toFixed(2);
+      document.getElementById('result').innerText = average;
+
+      // Check if "F" grade was selected in any subject
+      const hasFail = checkboxes.some(checkbox => {
+        const id = checkbox.id.split('-')[1];
+        const gradeValue = document.getElementById(`grade-${id}`).value;
+        return gradeValue === "0.00"; // Check if grade is F (0.00)
+      });
+
+      // Display fail message if "F" is selected
+      if (hasFail) {
+        document.getElementById('fail-message').classList.remove('hidden');
+      } else {
+        document.getElementById('fail-message').classList.add('hidden');
+      }
+
+      document.getElementById('result-box').classList.remove('hidden');
+    }
+  </script>
+</body>
+
+</html>
